@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -21,18 +22,30 @@ public class FlightController {
     @Autowired
     FlightRepository flightRepository;
 
-    @PostMapping
-    public HttpStatus postFlights() {
+    String generateRandomString(){
+        int leftLimit = 97; // letter 'a'
+        int rightLimit = 122; // letter 'z'
+        int targetStringLength = 10;
         Random random = new Random();
-        for (long i = 1; i <= 50; i++) {
-            String description = String.valueOf(random.ints());
-            String fromAirport = String.valueOf(random.ints());
-            String toAirport = String.valueOf(random.ints());
-            Status status = Status.ONTIME;
-            Flight flight = new Flight(i, description, fromAirport, toAirport, status);
-            flightRepository.saveAndFlush(flight);
+        return random.ints(leftLimit, rightLimit + 1)
+                .limit(targetStringLength)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
+    }
+
+    @PostMapping
+    public void postFlights() {
+        Random random = new Random();
+        List<Flight> newFlights = new ArrayList<>();
+        for(int i = 0; i <= 50; i++){
+            Flight flight = new Flight();
+            flight.setDescription(generateRandomString());
+            flight.setFromAirport(generateRandomString());
+            flight.setToAirport(generateRandomString());
+            flight.setStatus(Status.ONTIME);
+            newFlights.add(flight);
         }
-        return HttpStatus.OK;
+        flightRepository.saveAll(newFlights);
     }
 
     @GetMapping
